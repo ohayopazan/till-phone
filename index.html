@@ -124,5 +124,71 @@ function putCat(n){if(selected<0)return;let r=Math.floor(selected/9),c=selected%
 function checkBoard(){let conflict=new Set(),filled=true;for(let r=0;r<9;r++)for(let c=0;c<9;c++){let v=puzzle[r][c];if(v<0){filled=false;continue}let peers=[];for(let k=0;k<9;k++){if(k!==c)peers.push(r*9+k);if(k!==r)peers.push(k*9+c)}let br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;for(let rr=br;rr<br+3;rr++)for(let cc=bc;cc<bc+3;cc++)if(rr!==r||cc!==c)peers.push(rr*9+cc);for(let i of peers){if(puzzle[Math.floor(i/9)][i%9]===v){conflict.add(r*9+c);conflict.add(i)}}}document.querySelectorAll('#board button').forEach((b,i)=>b.classList.toggle('error',conflict.has(i)));$('sudokumsg').textContent=conflict.size?'Есть совпадения — проверь ряд, колонку и квадрат 3×3.':filled?'Мяу! Судоку решено идеально! ✨':'Ошибок пока нет. Продолжай!'}
 $('newgame').onclick=makePuzzle;makePuzzle();
 </script>
+<script type="module">
+import { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";
+
+window.startLocalTillAI = async function () {
+  const button = document.getElementById("aiSetup");
+  const status = document.getElementById("aiState");
+  if (window.localTillLoading) return;
+
+  window.localTillLoading = true;
+  button.disabled = true;
+  status.textContent = "Подготавливаю WebGPU…";
+
+  try {
+    if (!("gpu" in navigator)) {
+      throw new Error("WebGPU не поддерживается этим браузером. Открой сайт в актуальном Chrome.");
+    }
+
+    const model = "Qwen3-0.6B-q4f16_1-MLC";
+    const engine = await CreateMLCEngine(model, {
+      initProgressCallback: (progress) => {
+        status.textContent = progress.text ||
+          ("Загрузка модели: " + Math.round((progress.progress || 0) * 100) + "%");
+      }
+    });
+
+    window.dispatchEvent(new CustomEvent("till-model-ready", { detail: engine }));
+    status.textContent = "Модель готова! Теперь можешь писать Till.";
+    button.textContent = "✓ Модель загружена";
+  } catch (error) {
+    status.textContent = "Ошибка загрузки: " + (error?.message || String(error));
+    button.disabled = false;
+  } finally {
+    window.localTillLoading = false;
+  }
+};
+</script>
+</body></html>умывай факты канона, если не уверен. Уважай границы собеседницы, без романтического давления.'},...history.slice(-18).map(m=>({role:m.who==='me'?'user':'assistant',content:m.text}))];let res=await localTillEngine.chat.completions.create({messages:msgs,temperature:0.82,max_tokens:180});$('typing').textContent='';add('till',res.choices?.[0]?.message?.content?.trim()||'…');return}catch(e){$('typing').textContent='Ошибка локальной модели: '+(e.message||e);setTimeout(()=>$('typing').textContent='',4000);return}}$('typing').textContent='Сначала нажми «Загрузить бесплатную модель»';setTimeout(()=>$('typing').textContent='',2500)}
+$('send').onclick=send;$('message').addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+$('attach').onclick=()=>$('file').click();$('addphoto').onclick=()=>$('file').click();
+$('file').onchange=e=>{let f=e.target.files[0];if(!f)return;let reader=new FileReader();reader.onload=()=>{add('me','[фотография]',reader.result);galleryItems.unshift({emoji:'📷',label:'Ваше фото',src:reader.result});renderGallery()};reader.readAsDataURL(f);e.target.value=''};
+document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))});
+let galleryItems=[
+{src:'https://i.pinimg.com/474x/ff/22/47/ff22472d4a564b2f2cc688183be618ca.jpg',label:'Till · Pinterest art',source:'https://www.pinterest.com/ideas/till-alien-stage-official-art/930982280960/'},
+{src:'https://static.zerochan.net/Till.%28Alien.Stage%29.full.4325389.jpg',label:'Till · neon portrait',source:'https://www.zerochan.net/4325389'},
+{src:'https://public-cdn-s3-us-west-2.oss-us-east-1.aliyuncs.com/talkie-user-img/172242176491618/204114375295089.jpeg?x-oss-process=image%2Fresize%2Cw_1024%2Fformat%2Cwebp',label:'Till · guitar',source:'https://www.talkie-ai.com/chat/profile/till-204111686131802'},
+{src:'https://animate.godohosting.com/Goods/6977757740258.jpg',label:'Till · Garden',source:'https://www.animate-onlineshop.co.kr/goods/goods_view.php?goodsNo=1000085536'},
+{src:'https://static.zerochan.net/Till.%28Alien.Stage%29.full.4356093.jpg',label:'Till · sketch',source:'https://www.zerochan.net/4356093'},
+{src:'https://i.pinimg.com/736x/77/b6/8a/77b68a8392ed78804f76026e3a5d9679.jpg',label:'Till · green',source:'https://id.pinterest.com/pin/777574691944821457/'},
+{src:'https://static.zerochan.net/Till.%28Alien.Stage%29.full.4564441.jpg',label:'Till · guitar performance',source:'https://www.zerochan.net/4564441'},
+{src:'https://static.zerochan.net/Till.%28Alien.Stage%29.full.4703338.jpg',label:'Till · birthday art',source:'https://www.zerochan.net/4703338'},
+{emoji:'🎧',label:'музыка'},{emoji:'🌌',label:'ночной город'},{emoji:'🎼',label:'репетиция'},{emoji:'🪽',label:'крылья'}];
+function renderGallery(){ $('gallerygrid').innerHTML='';galleryItems.forEach((g,i)=>{let d=document.createElement('div');d.className='tile';if(g.src){let im=document.createElement('img');im.src=g.src;im.alt=g.label;im.loading='lazy';im.style='width:100%;height:100%;object-fit:cover';im.onerror=()=>{d.textContent='🖼️';};d.append(im)}else d.textContent=g.emoji;let s=document.createElement('small');s.textContent=g.label;d.append(s);if(g.source){d.title='Открыть источник изображения';d.style.cursor='pointer';d.onclick=()=>window.open(g.source,'_blank','noopener')} $('gallerygrid').append(d)})}
+renderGallery();
+const postData=[['🎤','Till','Не всякая тишина означает отсутствие музыки.'],['🎧','till_archive','плейлист для бессонных ночей'],['🌙','alien_stage','Свет сцены остаётся в глазах.'],['🎹','Till','Не спрашивай, сколько раз я переписал эту мелодию.']];
+$('stories').innerHTML=['Till','Ivan','Mizi','Sua','Hyuna'].map((n,i)=>`<div class="story"><div class="avatar">${['🎤','🧡','🎵','🌸','🔥'][i]}</div>${n}</div>`).join('');
+$('posts').innerHTML=postData.map(p=>`<article class="post"><div class="posthead"><div class="avatar">${p[0]}</div><b>${p[1]}</b></div><div class="postart">${p[0]}<span>${p[1]} · archive</span></div><p>${p[2]}</p><div class="actions">♡　♡　↗</div></article>`).join('');
+// Randomized 9x9 cat sudoku generator: shuffle valid bands, stacks, rows, columns and symbols.
+const catSet=['🐈','🐈‍⬛','😺','😸','😹','😻','😼','🙀','😽'];
+let puzzle=[],solution=[],selected=-1;
+function shuffle(a){for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function makePuzzle(){let bands=shuffle([0,1,2]),stacks=shuffle([0,1,2]),rows=[],cols=[];bands.forEach(b=>shuffle([0,1,2]).forEach(r=>rows.push(b*3+r)));stacks.forEach(s=>shuffle([0,1,2]).forEach(c=>cols.push(s*3+c)));let nums=shuffle([0,1,2,3,4,5,6,7,8]);solution=rows.map(r=>cols.map(c=>nums[(r*3+Math.floor(r/3)+c)%9]));puzzle=solution.map(row=>row.slice());let holes=42+Math.floor(Math.random()*8);shuffle(Array.from({length:81},(_,i)=>i)).slice(0,holes).forEach(i=>puzzle[Math.floor(i/9)][i%9]=-1);selected=-1;drawBoard()}
+function drawBoard(){let b=$('board');b.innerHTML='';for(let r=0;r<9;r++)for(let c=0;c<9;c++){let v=puzzle[r][c],btn=document.createElement('button');btn.textContent=v<0?'':catSet[v];btn.dataset.index=r*9+c;if(v>=0)btn.classList.add('fixed');btn.onclick=()=>{selected=r*9+c;document.querySelectorAll('#board button').forEach(x=>x.classList.toggle('selected',+x.dataset.index===selected));};b.append(btn)}let picker=$('catPicker');picker.innerHTML='';catSet.forEach((cat,n)=>{let bt=document.createElement('button');bt.className='pill';bt.textContent=cat;bt.onclick=()=>putCat(n);picker.append(bt)});let clear=document.createElement('button');clear.className='pill';clear.textContent='⌫';clear.onclick=()=>putCat(-1);picker.append(clear);checkBoard()}
+function putCat(n){if(selected<0)return;let r=Math.floor(selected/9),c=selected%9;if(puzzle[r][c]>=0)return;puzzle[r][c]=n;let b=$('board').children[selected];b.textContent=n<0?'':catSet[n];b.classList.remove('error');checkBoard()}
+function checkBoard(){let conflict=new Set(),filled=true;for(let r=0;r<9;r++)for(let c=0;c<9;c++){let v=puzzle[r][c];if(v<0){filled=false;continue}let peers=[];for(let k=0;k<9;k++){if(k!==c)peers.push(r*9+k);if(k!==r)peers.push(k*9+c)}let br=Math.floor(r/3)*3,bc=Math.floor(c/3)*3;for(let rr=br;rr<br+3;rr++)for(let cc=bc;cc<bc+3;cc++)if(rr!==r||cc!==c)peers.push(rr*9+cc);for(let i of peers){if(puzzle[Math.floor(i/9)][i%9]===v){conflict.add(r*9+c);conflict.add(i)}}}document.querySelectorAll('#board button').forEach((b,i)=>b.classList.toggle('error',conflict.has(i)));$('sudokumsg').textContent=conflict.size?'Есть совпадения — проверь ряд, колонку и квадрат 3×3.':filled?'Мяу! Судоку решено идеально! ✨':'Ошибок пока нет. Продолжай!'}
+$('newgame').onclick=makePuzzle;makePuzzle();
+</script>
 <script type="module">\nimport { CreateMLCEngine } from "https://esm.run/@mlc-ai/web-llm";\nwindow.startLocalTillAI=async()=>{if(window.localTillLoading)return;window.localTillLoading=true;const button=document.getElementById("aiSetup"),status=document.getElementById("aiState");button.disabled=true;status.textContent="Подготавливаю WebGPU…";try{if(!navigator.gpu)throw new Error("Браузер не поддерживает WebGPU. Попробуй актуальный Chrome и проверь поддержку WebGPU.");const model="Qwen3-0.6B-q4f16_1-MLC";window.localTillEngine=await CreateMLCEngine(model,{initProgressCallback:p=>{status.textContent=p.text||("Загрузка модели: "+Math.round((p.progress||0)*100)+"%");}});/* expose for classic script */window.dispatchEvent(new CustomEvent("till-model-ready",{detail:window.localTillEngine}));status.textContent="Модель готова! ИИ отвечает локально.";button.textContent="✓ Модель загружена";}catch(e){status.textContent="Не получилось загрузить: "+(e.message||e);button.disabled=false;}window.localTillLoading=false;};\n\n</script>
 </body></html>
